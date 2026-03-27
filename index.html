@@ -2,35 +2,65 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>量化AI交易系统</title>
+  <title>量化AI交易系统（实时版）</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body style="font-family: Arial; padding:20px;">
 
-<h1>📈 AI量化交易系统</h1>
+<h1>📈 AI量化交易系统（实时版）</h1>
 
-<p>收益率：25%</p>
-<p>最大回撤：-8%</p>
-<p>胜率：65%</p>
+<p>收益率：<span id="return">加载中...</span></p>
+<p>最大回撤：<span id="drawdown">加载中...</span></p>
+<p>胜率：<span id="winrate">加载中...</span></p>
 
 <canvas id="chart"></canvas>
 
+<p>AI信号：<span id="signal">加载中...</span></p>
+
 <script>
-const labels = Array.from({length:100}, (_,i)=>i);
+let chart;
 
-const equity = labels.map(i => 1 + i*0.01 + Math.random()*0.1);
-const benchmark = labels.map(i => 1 + i*0.008);
+async function loadData() {
+  const res = await fetch("http://127.0.0.1:8000/backtest/run_pro");
+  const data = await res.json();
 
-new Chart(document.getElementById('chart'), {
-  type: 'line',
-  data: {
-    labels: labels,
-    datasets: [
-      { label: '策略收益', data: equity },
-      { label: '沪深300', data: benchmark }
-    ]
-  }
-});
+  document.getElementById("return").innerText =
+    (data.performance.total_return * 100).toFixed(2) + "%";
+
+  document.getElementById("drawdown").innerText =
+    (data.performance.max_drawdown * 100).toFixed(2) + "%";
+
+  document.getElementById("winrate").innerText =
+    (data.performance.win_rate * 100).toFixed(2) + "%";
+
+  const labels = data.equity.map((_, i) => i);
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: '策略收益', data: data.equity },
+        { label: '沪深300', data: data.benchmark }
+      ]
+    }
+  });
+
+  const last = data.equity[data.equity.length - 1];
+  const prev = data.equity[data.equity.length - 2];
+
+  document.getElementById("signal").innerText =
+    last > prev ? "🟢 BUY" : "🔴 SELL";
+}
+
+// 初始加载
+loadData();
+
+// 每10秒刷新
+setInterval(loadData, 10000);
 </script>
 
 </body>
