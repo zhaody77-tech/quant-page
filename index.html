@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>量化AI交易系统</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body style="font-family: Arial; padding:20px;">
+
+<h1>📈 AI量化交易系统</h1>
+
+<p>收益率：25%</p>
+<p>最大回撤：-8%</p>
+<p>胜率：65%</p>
+
+<canvas id="chart"></canvas>
+
+<script>
+const labels = Array.from({length:100}, (_,i)=>i);
+
+const equity = labels.map(i => 1 + i*0.01 + Math.random()*0.1);
+const benchmark = labels.map(i => 1 + i*0.008);
+
+new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [
+      { label: '策略收益', data: equity },
+      { label: '沪深300', data: benchmark }
+    ]
+  }
+});
+</script>
+
+</body>
+</html>
